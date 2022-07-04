@@ -11,7 +11,7 @@ export const BUTTON_TYPE = {
  */
 export const Button = ({ children, buttonType, ...buttonProps }) => {
 	return (
-		<button className={`button-container ${buttonType}`} {...buttonProps} >
+		<button className={`button-container${buttonType ? ' ' + buttonType : ''}`} {...buttonProps} >
 			{children}
 		</button>
 	)
