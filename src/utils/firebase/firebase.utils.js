@@ -10,10 +10,14 @@ import {
 	signOut,
 } from 'firebase/auth';
 import {
+	collection,
 	doc,
 	getDoc,
+	getDocs,
 	getFirestore,
+	query,
 	setDoc,
+	writeBatch,
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -31,6 +35,19 @@ const provider = new GoogleAuthProvider();
 provider.setCustomParameters({
 	prompt: "select_account"
 });
+
+export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => {
+	const collectionRef = collection(db, collectionKey);
+	const batch = writeBatch(db);
+
+	objectsToAdd.forEach(objectToAdd => {
+		const docRef = doc(collectionRef, objectToAdd.title.toLowerCase());
+		batch.set(docRef, objectToAdd);
+	});
+
+	await batch.commit();
+	console.log('done');
+}
 
 export const auth = getAuth();
 
@@ -66,6 +83,21 @@ export const createUserDocumentFromAuth = async (userAuth, additionalInformation
 
 	return userDocRef;
 };
+
+export const getCategoriesAndDocuments = async() => {
+	const collectionRef = collection(db, 'categories');
+	const q = query(collectionRef);
+
+	const querySnapshot = await getDocs(q);
+	const categoryMap = querySnapshot.docs.reduce(
+		(acc, docSnapshot) => {
+			const { title, items } = docSnapshot.data();
+			acc[title.toLowerCase()] = items;
+			return acc;
+		}, {});
+
+	return categoryMap;
+}
 
 export const signInAuthUserWithEmailAndPassword = async (email, password) => {
 	if (!email || !password) return;
